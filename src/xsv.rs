@@ -132,14 +132,14 @@ impl<'vtab> VTab<'vtab> for XsvTable {
             args.table_name.as_str(),
         )?;
         let vtab = XsvTable {
-            base: unsafe { mem::zeroed() },
+            base: unsafe{mem::zeroed()},
             db,
-            input: arguments.filename.clone(),
+            input: arguments.filename,
             header: arguments.header,
             delimiter: arguments.delimiter,
             quote: arguments.quote,
             declared_columns: arguments.columns,
-            current_path: "".to_owned(),
+            current_path: String::new(),
             current_line_number: 0,
         };
 
@@ -238,7 +238,7 @@ impl XsvCursor {
             ))
         })?;
         let mut cursor = XsvCursor {
-            base: unsafe { mem::zeroed() },
+            base: unsafe{mem::zeroed()},
             rowid: 0,
             paths,
             current_path: None,
@@ -246,7 +246,7 @@ impl XsvCursor {
             current_line_number: 0,
             record,
             eof: false,
-            declared_columns: table.declared_columns.clone(),
+            declared_columns: table.declared_columns,
             table: table as *mut XsvTable,
         };
         cursor.next().map(|_| cursor)
@@ -336,14 +336,16 @@ impl VTabCursor for XsvCursor {
     }
 
     fn column(&self, context: *mut sqlite3_context, i: c_int) -> Result<()> {
-        let i = usize::try_from(i)
-            .map_err(|_| Error::new_message(format!("what the fuck {}", i).as_str()))?;
-
+        // Change the content of ErrMsg + Handling Negative Index
+        if i<0{
+            return Err(Error::new_message(format!("negative index {}", i).as_str()))?
+        }
         // This will typically only be None when a glob pattern is used, and the 1st sniffed CSV
         // has more column than another CSV in the same glob pattern.
         // For now we just return NULL for missing columns, not sure how flexible we should be
         // across CSV files. If it's a single file, i'm pretty sure it's not flexible
-        let value = &self.record.get(i);
+        let i = usize::try_from(i).unwrap();    // Unwrap allow, try_from send Err only for out of range number.
+        let value = &self.record.get(i);  
 
         if let Some(value) = value {
             match self.declared_columns.as_ref().and_then(|c| c.get(i)) {

@@ -43,7 +43,7 @@ impl<'vtab> VTab<'vtab> for XsvFieldsTable {
         _aux: Option<&Self::Aux>,
         _args: VTabArguments,
     ) -> Result<(String, XsvFieldsTable)> {
-        let base: sqlite3_vtab = unsafe { mem::zeroed() };
+        let base: sqlite3_vtab = unsafe{mem::zeroed()};
 
         let vtab = XsvFieldsTable { base };
 
@@ -90,7 +90,7 @@ pub struct XsvFieldsCursor {
 }
 impl XsvFieldsCursor {
     fn new() -> Result<XsvFieldsCursor> {
-        let base: sqlite3_vtab_cursor = unsafe { mem::zeroed() };
+        let base: sqlite3_vtab_cursor = unsafe{mem::zeroed()};
         let record = csv::StringRecord::new();
 
         let cursor = XsvFieldsCursor {

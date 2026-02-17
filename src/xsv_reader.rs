@@ -41,7 +41,7 @@ impl<'vtab> VTab<'vtab> for XsvReaderTable {
         args: VTabArguments,
     ) -> Result<(String, XsvReaderTable)> {
         let arguments = parse_reader_arguments(args.arguments, aux.map(|a| a.to_owned()))?;
-        let base: sqlite3_vtab = unsafe { mem::zeroed() };
+        let base: sqlite3_vtab = unsafe{mem::zeroed()};
 
         let vtab = XsvReaderTable {
             base,
@@ -117,7 +117,7 @@ impl XsvReaderCursor<'_> {
         columns: &Vec<ColumnDeclaration>,
         header: bool,
     ) -> Result<XsvReaderCursor> {
-        let base: sqlite3_vtab_cursor = unsafe { mem::zeroed() };
+        let base: sqlite3_vtab_cursor = unsafe{mem::zeroed()};
         let record = csv::StringRecord::new();
 
         let cursor = XsvReaderCursor {
@@ -198,19 +198,18 @@ impl VTabCursor for XsvReaderCursor<'_> {
     }
 
     fn column(&self, context: *mut sqlite3_context, i: c_int) -> Result<()> {
-        if i < 1 {
+        if i < 0 {
             return Ok(());
         }
-        let i = usize::try_from(i - 1)
-            .map_err(|_| Error::new_message(format!("what the fuck {}", i).as_str()))?;
+        let i = usize::try_from(i).unwrap(); // i is positive
         let column = self
             .columns
             .get(i)
-            .ok_or_else(|| Error::new_message("what the fuck"))?;
+            .ok_or_else(|| Error::new_message("OutOfRange Index ?"))?;
         let s = &self
             .record
             .get(i)
-            .ok_or_else(|| Error::new_message(format!("wut {}", i).as_str()))?;
+            .ok_or_else(|| Error::new_message(format!("wut {}", i)))?;
         column.affinity().result_text(context, s)?;
         Ok(())
     }
@@ -254,7 +253,7 @@ fn parse_reader_arguments(
                     _ => (),
                 },
             },
-            Err(err) => return Err(Error::new_message(err.as_str())),
+            Err(err) => return Err(Error::new_message(err)),
         };
     }
     let delimiter = delimiter.ok_or_else(|| {

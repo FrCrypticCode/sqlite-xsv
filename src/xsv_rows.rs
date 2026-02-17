@@ -148,7 +148,7 @@ pub struct XsvRowsCursor {
 }
 impl XsvRowsCursor {
     fn new(delimiter: Option<u8>) -> Result<XsvRowsCursor> {
-        let base: sqlite3_vtab_cursor = unsafe { mem::zeroed() };
+        let base: sqlite3_vtab_cursor = unsafe{mem::zeroed()};
         let record = csv::StringRecord::new();
 
         let cursor = XsvRowsCursor {
@@ -221,7 +221,7 @@ impl VTabCursor for XsvRowsCursor {
                     "Error: UTF8 error while reading next row",
                 )),
                 _ => Err(Error::new_message(
-                    format!("Error reading: {}", err).as_str(),
+                    format!("Error reading: {}", err),
                 )),
             },
         }
